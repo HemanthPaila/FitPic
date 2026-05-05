@@ -125,6 +125,21 @@ font-size: 13px; color: var(--muted); cursor: pointer;
 max-width: 1100px; margin: 0 auto; padding: 80px 24px 80px;
 }
 .results-header {
+  <div class="results-header">
+  <div>
+    <h2>Your Top 5 <span>Picks</span></h2>
+    <p class="results-meta" id="results-meta"></p>
+  </div>
+
+  <!-- NEW BUTTON -->
+  <button class="btn-next" onclick="getRecommendations()">
+    Refresh Recommendations →
+  </button>
+
+  <button class="btn-redo" onclick="showPage('quiz')">
+    ← Change Preferences
+  </button>
+</div>
 display: flex; align-items: flex-start; justify-content: space-between;
 flex-wrap: wrap; gap: 16px; margin-bottom: 36px;
 }
@@ -577,7 +592,7 @@ ondrop="handleDrop(event)">
 // ─────────────────────────────────────────
 // CONFIG
 // ─────────────────────────────────────────
-const API = 'http://localhost:8000';
+const API = 'http://localhost:5001';
 
 // Quiz state
 const prefs = {
@@ -748,12 +763,32 @@ meta.textContent = `${styleLabel} · ${occasionLabel}${prefs.gender ? ' · ' + p
 let outfits = null;
 
 try {
-const r = await fetch(`${API}/recommend/quick?${params}`, {
-signal: AbortSignal.timeout(10000),
+const r = await fetch(`${API}/recommend`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    style: prefs.style || "casual",
+    occasion: prefs.occasion || "everyday",
+    gender: prefs.gender,
+    colors: []
+  })
 });
 if (r.ok) {
 const data = await r.json();
-outfits = data.outfits || [];
+
+outfits = data.map((item, i) => ({
+  name: item.productDisplayName || "Item",
+  brand: item.brand || "FitPick",
+  color: item.baseColour || "N/A",
+  category: item.articleType || "Clothing",
+  match_score: 90 - i,
+  price: null,
+  retailer: "Dataset",
+  image_url: "",
+  shop_url: item.link || "#"
+}));
 }
 } catch {
 outfits = null;
@@ -966,66 +1001,6 @@ return demos[styleKey] || demos.casual;
 document.addEventListener('DOMContentLoaded', () => {
 checkAPI();
 });
-</script>
-  <!-- 🔽 BUTTON -->
-<button onclick="getRecommendations()">
-  Get Outfit Recommendations
-</button>
-
-<!-- 🔽 RESULTS WILL SHOW HERE -->
-<div id="results"></div>
-
-<!-- 🔽 SCRIPT -->
-<script>
-async function getRecommendations() {
-  try {
-    const response = await fetch("http://localhost:5001/recommend", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        style: "casual",
-        occasion: "everyday",
-        gender: "Men",
-        colors: ["Black", "White"]
-      })
-    });
-
-    const data = await response.json();
-    console.log("API Response:", data);
-
-    const container = document.getElementById("results");
-    container.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      container.innerHTML = "<p>No recommendations found.</p>";
-      return;
-    }
-
-    data.forEach(item => {
-      const div = document.createElement("div");
-
-      div.style.border = "1px solid #ccc";
-      div.style.padding = "10px";
-      div.style.margin = "10px";
-
-      div.innerHTML = `
-        <h3>${item.productDisplayName || "Item"}</h3>
-        <p><strong>Color:</strong> ${item.baseColour || "N/A"}</p>
-        <p><strong>Type:</strong> ${item.articleType || "N/A"}</p>
-        <a href="${item.link || "#"}" target="_blank">View Product</a>
-      `;
-
-      container.appendChild(div);
-    });
-
-  } catch (error) {
-    console.error("Error:", error);
-    document.getElementById("results").innerHTML =
-      "<p>Error fetching recommendations. Make sure the server is running.</p>";
-  }
-}
 </script>
 </body>
 </html>

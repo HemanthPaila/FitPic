@@ -3,7 +3,11 @@ from recommrender import get_personalized_recommendations, save_feedback
 
 app = Flask(__name__)
 
-@app.route("/recommend", methods=["POST"])
+@app.route("/")
+def home():
+    return render_template("Homepage.html")
+
+
 def recommend():
     data = request.json
 

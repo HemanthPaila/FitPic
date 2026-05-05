@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from ml.recommender import get_personalized_recommendations, save_feedback
+from recommrender import get_personalized_recommendations, save_feedback
 
 app = Flask(__name__)
 

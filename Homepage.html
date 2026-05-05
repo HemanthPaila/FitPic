@@ -526,7 +526,9 @@ ondrop="handleDrop(event)">
 <p class="skip-link" onclick="nextStep(5)">Skip this step →</p>
 <div class="quiz-nav">
 <button class="btn-back" onclick="prevStep(5)">← Back</button>
-<button class="btn-next" id="next-5" onclick="nextStep(5)">Get My Outfits →</button>
+<button class="btn-next" id="next-5" onclick="handleRecommendations()">
+  Get My Outfits →
+</button>
 </div>
 </div>
 </div>
@@ -621,7 +623,6 @@ document.getElementById(`page-${name}`).classList.remove('hidden');
 window.scrollTo(0, 0);
 
 if (name === 'quiz') resetQuiz();
-if (name === 'results') fetchRecommendations();
 }
 
 // ─────────────────────────────────────────
@@ -737,11 +738,16 @@ handlePhoto(input);
 }
 
 // ─────────────────────────────────────────
-// FETCH RECOMMENDATIONS
+// FETCH AND HANDLE RECOMMENDATIONS
 // ─────────────────────────────────────────
 async function fetchRecommendations() {
 const container = document.getElementById('outfits-container');
 const meta = document.getElementById('results-meta');
+
+function handleRecommendations() {
+  showPage('results');       // switch UI
+  fetchRecommendations();    // call backend
+}
 
 container.innerHTML = `
 <div class="loading-wrap">

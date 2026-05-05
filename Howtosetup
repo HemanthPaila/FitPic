@@ -1,0 +1,160 @@
+FitPic
+AI Outfit Recommendation System
+Technical Documentation
+
+
+Overview
+FitPic is an AI-powered outfit recommendation system that accepts user preferences (style, occasion, skin tone, gender) and returns a ranked list of clothing items sourced from live retail APIs. The system uses a three-tier data pipeline:
+
+•	Real-Time Product Search API
+•	ASOS API
+•	Local CSV dataset fallback
+
+System Requirements
+Requirement	Version
+Python	3.9 or higher
+pip	Included with Python
+Internet connection	Required for live API calls
+
+Dependencies
+Package	Purpose
+fastapi	Web framework for the REST API server
+uvicorn	ASGI server that runs FastAPI
+pandas	Data manipulation for the local CSV dataset
+requests	HTTP client for external API calls
+pydantic	Request/response data validation
+
+Install all dependencies with:
+
+pip install fastapi uvicorn pandas requests pydantic
+
+Project Structure
+FitPic/
+├── model.py          # Recommendation engine, API integrations, data logic
+├── main.py           # FastAPI application and route definitions
+├── homepage.html     # Primary web interface (open this in a browser)
+├── index.html        # Alternate web interface
+├── explore_data.py   # Standalone data exploration utility
+└── styles.csv        # Local fallback dataset (44,000 clothing items)
+
+Running the Application
+There are three ways to run FitPic depending on your use case.
+
+Method 1 — Web Interface (Recommended)
+This is the primary way to use FitPic. It requires two steps: starting the backend server, then opening the frontend.
+
+Step 1 — Start the API server:
+python main.py
+
+You should see:
+FITPIC API SERVER STARTING...
+URL:  http://localhost:8000
+Docs: http://localhost:8000/docs
+
+Step 2 — Open the homepage:
+Open homepage.html in your browser by double-clicking the file, or run:
+
+# Mac
+open homepage.html
+
+# Windows
+start homepage.html
+
+The homepage will load the FitPic interface and communicate with the server running at http://localhost:8000 to fetch outfit recommendations.
+
+Note: The terminal running python main.py must remain open the entire time. Closing it stops the server.
+
+Method 2 — Command Line Interface
+Runs FitPic entirely in the terminal with no browser or server required. Useful for testing the recommendation engine directly.
+python model.py
+
+The program will prompt you to enter preferences step by step:
+What's your name?
+What would you like to shop for?   (Women / Men / No preference)
+What style are you going for?      (Casual, Streetwear, Formal, etc.)
+What's the occasion?               (Everyday, Work, Date, etc.)
+What's your skin tone?             (Fair, Medium, Deep, etc.)
+What season are you dressing for?
+
+At the end, your top 5 outfit recommendations are printed with match scores, colors, prices, and direct shopping links.
+
+Method 3 — API Server Only
+If you want to query the recommendation engine directly without a frontend (e.g. for testing or integration), start the server and use the interactive API docs.
+python main.py
+
+Then open in your browser:
+http://localhost:8000/docs
+
+This opens Swagger UI where you can test every endpoint manually.
+
+API Reference
+POST /recommend
+Returns outfit recommendations based on user preferences.
+
+Request Body (JSON):
+{
+  "style":     "casual",
+  "occasion":  "everyday",
+  "skin_tone": "medium",
+  "gender":    "Women"
+}
+
+Response:
+{
+  "success": true,
+  "style": "casual",
+  "total_found": 5,
+  "outfits": [...]
+}
+
+GET /recommend/quick
+Same as POST /recommend but accepts parameters in the URL.
+GET /recommend/quick?style=casual&skin_tone=medium&gender=Women
+
+GET /styles
+Returns all valid values for style, occasion, and skin_tone.
+
+GET /health
+Returns server status. Useful for confirming the server is running.
+
+Accepted Parameter Values
+style
+casual · streetwear · business_casual · formal · athleisure · bohemian · minimalist
+
+occasion
+everyday · work · night_out · date · campus · workout · travel
+
+skin_tone
+fair · light · medium · medium_warm · tan · deep
+
+gender
+Women · Men · (omit for no preference)
+
+Data Pipeline
+Recommendations are resolved in the following order of priority:
+
+1.	Real-Time Product Search API — Queries one item per outfit slot (top, bottom, shoes, accessory). Each result is validated with a live URL check before being returned.
+2.	ASOS API — Used if fewer than 3 results are returned from step 1.
+3.	Local CSV Fallback — styles.csv is used if both APIs fail or return insufficient results. Items are scored and ranked by color compatibility and gender match.
+
+Configuration
+The RapidAPI key is defined at the top of model.py:
+
+RAPIDAPI_KEY = "your-key-here"
+
+This key covers both the ASOS API (asos10.p.rapidapi.com) and the Real-Time Product Search API (real-time-product-search.p.rapidapi.com). Replace it if the key expires or is rotated.
+
+Data Exploration
+To inspect the local dataset independently:
+
+python explore_data.py
+
+Outputs a breakdown of usage categories, article types, and sample records from styles.csv.
+
+Troubleshooting
+Problem	Fix
+ModuleNotFoundError	Run: pip install fastapi uvicorn pandas requests pydantic
+Homepage shows no results	Confirm python main.py is running in the terminal
+Address already in use	Another process is using port 8000 — restart terminal and retry
+python: command not found	Python is not installed or not added to PATH
+API returns empty outfits	Check internet connection; system will fall back to styles.csv automatically

@@ -967,5 +967,65 @@ document.addEventListener('DOMContentLoaded', () => {
 checkAPI();
 });
 </script>
+  <!-- 🔽 BUTTON -->
+<button onclick="getRecommendations()">
+  Get Outfit Recommendations
+</button>
+
+<!-- 🔽 RESULTS WILL SHOW HERE -->
+<div id="results"></div>
+
+<!-- 🔽 SCRIPT -->
+<script>
+async function getRecommendations() {
+  try {
+    const response = await fetch("http://localhost:5001/recommend", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        style: "casual",
+        occasion: "everyday",
+        gender: "Men",
+        colors: ["Black", "White"]
+      })
+    });
+
+    const data = await response.json();
+    console.log("API Response:", data);
+
+    const container = document.getElementById("results");
+    container.innerHTML = "";
+
+    if (!data || data.length === 0) {
+      container.innerHTML = "<p>No recommendations found.</p>";
+      return;
+    }
+
+    data.forEach(item => {
+      const div = document.createElement("div");
+
+      div.style.border = "1px solid #ccc";
+      div.style.padding = "10px";
+      div.style.margin = "10px";
+
+      div.innerHTML = `
+        <h3>${item.productDisplayName || "Item"}</h3>
+        <p><strong>Color:</strong> ${item.baseColour || "N/A"}</p>
+        <p><strong>Type:</strong> ${item.articleType || "N/A"}</p>
+        <a href="${item.link || "#"}" target="_blank">View Product</a>
+      `;
+
+      container.appendChild(div);
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    document.getElementById("results").innerHTML =
+      "<p>Error fetching recommendations. Make sure the server is running.</p>";
+  }
+}
+</script>
 </body>
 </html>

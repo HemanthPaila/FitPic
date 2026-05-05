@@ -140,8 +140,6 @@ Recommendations are resolved in the following order of priority:
 Configuration
 The RapidAPI key is defined at the top of model.py:
 
-RAPIDAPI_KEY = "your-key-here"
-
 This key covers both the ASOS API (asos10.p.rapidapi.com) and the Real-Time Product Search API (real-time-product-search.p.rapidapi.com). Replace it if the key expires or is rotated.
 
 Data Exploration

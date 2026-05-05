@@ -772,32 +772,12 @@ meta.textContent = `${styleLabel} · ${occasionLabel}${prefs.gender ? ' · ' + p
 let outfits = null;
 
 try {
-const r = await fetch(`${API}/recommend`, {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    style: prefs.style || "casual",
-    occasion: prefs.occasion || "everyday",
-    gender: prefs.gender,
-    colors: []
-  })
+const r = await fetch(`${API}/recommend/quick?${params}`, {
+  signal: AbortSignal.timeout(10000),
 });
 if (r.ok) {
 const data = await r.json();
-
-outfits = data.map((item, i) => ({
-  name: item.productDisplayName || "Item",
-  brand: item.brand || "FitPick",
-  color: item.baseColour || "N/A",
-  category: item.articleType || "Clothing",
-  match_score: 90 - i,
-  price: null,
-  retailer: "Dataset",
-  image_url: "",
-  shop_url: item.link || "#"
-}));
+outfits = data.outfits || [];
 }
 } catch {
 outfits = null;
